@@ -9,6 +9,7 @@ __pycache__/
 .DS_Store
 .idea/
 
-# Keep session notes and local reports private; publish only the root README.
+# Keep session notes private; track only the root README and agent instructions.
 *.[mM][dD]
 !/README.md
+!/AGENTS.md
