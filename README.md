@@ -6,21 +6,19 @@ It provides asyncio APIs to read macOS Now Playing metadata, subscribe to
 updates, and control the current player.
 
 Import it as `macos_mediaremote`. The distribution name is
-`macos-mediaremote-python`, and the current version is `0.1.0a1`. No PyPI package
-has been published yet.
+`macos-mediaremote-python`, and the current alpha version is `0.1.0a1`.
 
-## Local installation
+## Installation
 
-Requires Python 3.11+. This repository currently provides source code only.
-First build a local wheel using the steps in [Building from source](#building-from-source),
-then install it:
+Requires macOS and Python 3.11+. Install the alpha release in a virtual environment:
 
 ```sh
 python3 -m venv /tmp/mediaremote-demo
-/tmp/mediaremote-demo/bin/python -m pip install --no-index --no-deps \
-  dist/macos_mediaremote_python-0.1.0a1-py3-none-macosx_11_0_universal2.whl
-/tmp/mediaremote-demo/bin/python examples/read_once.py
+/tmp/mediaremote-demo/bin/python -m pip install macos-mediaremote-python==0.1.0a1
 ```
+
+Compatible macOS installations use the bundled universal2 wheel. For local
+development, see [Building from source](#building-from-source).
 
 The wheel includes the framework, upstream Perl script, and licenses. Installing,
 importing, and running an installed wheel never downloads native code. Wheel users
@@ -212,6 +210,14 @@ python3 -m venv .venv
 .venv/bin/python -m build
 ```
 
+Install the resulting wheel into a separate environment to verify it:
+
+```sh
+python3 -m venv /tmp/mediaremote-local
+/tmp/mediaremote-local/bin/python -m pip install --no-index --no-deps dist/*.whl
+/tmp/mediaremote-local/bin/python examples/read_once.py
+```
+
 `python -m build` creates an sdist, then builds a wheel from it. The sdist includes
 this project's build scripts, lock file, licenses, tests, and examples, but not
 the upstream source archive. Source installation requires native build tools and
@@ -268,8 +274,7 @@ does not send playback controls or print actual track metadata values.
 
 ## License and release status
 
-The wrapper currently uses BSD-3-Clause; see [LICENSE](https://github.com/Mai-icy/macos-mediaremote-python/blob/main/LICENSE). The license
-choice will be confirmed by the project owner before a package release.
+The wrapper uses BSD-3-Clause; see [LICENSE](https://github.com/Mai-icy/macos-mediaremote-python/blob/main/LICENSE).
 Upstream copyright belongs to Jonas van den Berg and contributors. Its original
 license is preserved in [licenses/mediaremote-adapter.txt](https://github.com/Mai-icy/macos-mediaremote-python/blob/main/licenses/mediaremote-adapter.txt)
 and bundled with the wheel. The wrapper is independently implemented against the
@@ -278,10 +283,9 @@ public CLI/JSON protocol.
 Framework layout changes, install-name changes, and re-signing are packaging
 steps performed by this project, not official upstream artifacts.
 
-Source code and local build instructions are available. Nothing has been
-published to PyPI/TestPyPI. The distribution name is `macos-mediaremote-python`;
-license confirmation, the supported platform range, and the signing strategy
-will be settled before a package release.
+Version `0.1.0a1` is an alpha release. The public API may change before a stable
+release. See the support and validation sections above for the tested platforms
+and remaining limitations.
 
 ## CI and release workflow
 
