@@ -1,6 +1,6 @@
 """Build only at wheel creation; never imported by the installed package."""
 import hashlib
-import json
+import runpy
 import shutil
 import subprocess
 import sys
@@ -19,7 +19,8 @@ def run(*args):
 def build_native(destination: Path):
     if sys.platform != "darwin":
         raise RuntimeError("Native wheels must be built on macOS with Xcode CLT and CMake")
-    lock = json.loads((ROOT / "upstream.lock.json").read_text())
+    checks = runpy.run_path(str(ROOT / "release_checks.py"))
+    _, lock = checks["read_configuration"]()
     cache = ROOT / ".build" / "upstream" / "source.tar.gz"
     cache.parent.mkdir(parents=True, exist_ok=True)
     if not cache.exists():

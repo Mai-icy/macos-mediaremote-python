@@ -7,6 +7,7 @@ from setuptools.command.build_py import build_py
 from setuptools.command.bdist_wheel import bdist_wheel
 
 build_native = runpy.run_path(str(Path(__file__).resolve().with_name("native_build.py")))["build_native"]
+checks = runpy.run_path(str(Path(__file__).resolve().with_name("release_checks.py")))
 
 
 class BuildPy(build_py):
@@ -21,7 +22,8 @@ class Wheel(bdist_wheel):
         self.root_is_pure = False
 
     def get_tag(self):
-        return "py3", "none", "macosx_11_0_universal2"
+        _, lock = checks["read_configuration"]()
+        return "py3", "none", checks["platform_tag"](lock)
 
 
 class BinaryDistribution(Distribution):

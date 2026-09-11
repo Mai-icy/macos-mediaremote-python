@@ -1,4 +1,4 @@
-include native_build.py upstream.lock.json
+include native_build.py release_checks.py upstream.lock.json
 recursive-include licenses *
 recursive-include examples *.py
 recursive-include tests *.py
