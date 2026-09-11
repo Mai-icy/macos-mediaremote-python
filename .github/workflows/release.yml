@@ -1,0 +1,119 @@
+name: Validate and release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish to PyPI (select a matching vVERSION tag; requires environment approval)
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Python ${{ matrix.python }} tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12', '3.13', '3.14']
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install pytest pytest-asyncio
+      - name: Check version, upstream pin, and requested release tag
+        env:
+          PUBLISH_REQUESTED: ${{ inputs.publish || false }}
+        run: python release_checks.py
+      - run: python -m pytest -q
+
+  build:
+    name: Build universal2 wheel from sdist
+    needs: tests
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.14'
+      - run: python -m pip install build twine
+      - run: python -m build
+      - run: python -m twine check --strict dist/*
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: distributions
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+  installed:
+    name: Installed wheel (${{ matrix.os }}, Python ${{ matrix.python }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+        python: ['3.11', '3.14']
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: distributions
+          path: dist
+      - name: Install the wheel and test outside the checkout
+        shell: bash
+        run: |
+          python -m venv "$RUNNER_TEMP/wheel-venv"
+          audit_python="$RUNNER_TEMP/wheel-venv/bin/python"
+          "$audit_python" -m pip install --no-index --no-deps dist/*.whl
+          "$audit_python" -m pip install pytest pytest-asyncio
+          "$audit_python" -m pip check
+          mkdir -p "$RUNNER_TEMP/wheel-tests"
+          cp tests/conftest.py tests/test_client.py tests/test_models.py "$RUNNER_TEMP/wheel-tests/"
+          cp examples/verify_installed.py "$RUNNER_TEMP/verify_installed.py"
+          cd "$RUNNER_TEMP"
+          "$audit_python" -I -m pytest -q wheel-tests -o asyncio_mode=auto
+          "$audit_python" -I verify_installed.py --read-once
+
+  publish:
+    name: Publish approved distributions to PyPI
+    needs: [tests, build, installed]
+    if: >-
+      github.event_name == 'workflow_dispatch' && inputs.publish &&
+      startsWith(github.ref, 'refs/tags/v') &&
+      github.repository == 'Mai-icy/macos-mediaremote-python'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/project/macos-mediaremote-python/
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: distributions
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
