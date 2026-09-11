@@ -1,14 +1,13 @@
 # macos-mediaremote-python
 
-An **unofficial**, lightweight asyncio wrapper for
-[ungive/mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), targeting
-macOS's current Now Playing application.
+An **unofficial** Python wrapper for
+[ungive/mediaremote-adapter](https://github.com/ungive/mediaremote-adapter).
+It provides asyncio APIs to read macOS Now Playing metadata, subscribe to
+updates, and control the current player.
 
 Import it as `macos_mediaremote`. The distribution name is
 `macos-mediaremote-python`, and the current version is `0.1.0a1`. No PyPI package
 has been published yet.
-The API follows the upstream protocol and has no Spotify, Qt, or third-party
-Python runtime dependencies.
 
 ## Local installation
 
@@ -74,7 +73,6 @@ Each `stream()` owns one persistent helper process and must be used with
 `async with`. Entering the context waits up to `initialization_timeout` seconds
 for the first valid snapshot, which is retained for iteration. Subsequent silence
 has no idle timeout. Every event is a complete snapshot (`--no-diff` upstream).
-There is no additional synchronous, callback, or automatic reconnection API.
 
 Upstream may emit an empty snapshot before the current media state arrives.
 The first `None` does not mean initialization has settled.
@@ -187,8 +185,7 @@ archive bytes into a fresh directory. It does not build from an edited checkout
 or fetch a moving `latest` version at runtime.
 
 The build uses standard `setuptools.build_meta` with small hooks to build the
-native resources and set the wheel tag. It needs no CPython extension, CMake
-Python binding, or additional build backend. See the
+native resources and set the wheel tag. See the
 [setuptools customization documentation](https://setuptools.pypa.io/en/latest/userguide/extension.html)
 and [platform tag specification](https://packaging.python.org/en/latest/specifications/platform-compatibility-tags/).
 
@@ -235,14 +232,13 @@ only happen at build time.
   and read-only helper execution on Intel and Apple Silicon; it does not exercise
   real desktop players.
 - This package depends on private MediaRemote APIs and the system Perl access
-  mechanism. Future macOS updates may break it. It does not require disabling SIP,
-  modifying system files, or obtaining Spotify OAuth or automation permissions.
+  mechanism. Future macOS updates may break it.
 - Browsers and other players may report different fields, omit titles or artwork,
   or ignore some commands.
 - The pinned upstream `stream.m` still calls `requestAll()` before registering
   notifications. This leaves a potential initialization window for missed updates.
-  The first event is not an atomic subscription-ready barrier. This package keeps
-  upstream behavior without native timing patches or player-specific controls.
+  The first event is not an atomic subscription-ready barrier. This package
+  preserves upstream initialization behavior.
 - `get()` returning `None` alone cannot prove private API access is working: no
   active session and an access failure may be hard to distinguish. Read-only
   verification does not create synthetic media to resolve that uncertainty.
