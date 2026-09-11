@@ -7,7 +7,7 @@ import pytest
 from macos_mediaremote import (
     Command, HelperError, HelperTimeoutError, MediaRemote, ProtocolError, UnsupportedPlatformError,
 )
-from macos_mediaremote._process import STDERR_LIMIT
+from macos_mediaremote._process import Process, STDERR_LIMIT
 
 EVENT = json.dumps({"type": "data", "diff": False, "payload": {"title": "音乐🎵"}}, ensure_ascii=False) + "\n"
 EMIT = f"os.write(1, {EVENT.encode()!r})\n"
@@ -33,10 +33,10 @@ async def test_fragmented_utf8_multiline_and_normal_exit(helpers):
 
 async def test_idle_longer_than_initial_timeout_and_cancel(helpers):
     make, processes = helpers
-    async with make(EMIT + "time.sleep(30)\n", initialization_timeout=0.4).stream() as stream:
+    async with make(EMIT + "time.sleep(30)\n", initialization_timeout=2.0).stream() as stream:
         await anext(stream)
         task = asyncio.create_task(anext(stream))
-        await asyncio.sleep(0.6)
+        await asyncio.sleep(2.2)
         assert not task.done()
         task.cancel()
         with pytest.raises(asyncio.CancelledError):
@@ -109,13 +109,31 @@ async def test_oversized_stdout(helpers, mode):
 
 async def test_initial_timeout_and_command_timeout(helpers):
     make, _ = helpers
-    client = make('os.write(2, b"waiting"); time.sleep(30)\n', timeout=0.2, initialization_timeout=0.2)
+    client = make('time.sleep(30)\n', timeout=0.2, initialization_timeout=0.2)
     with pytest.raises(HelperTimeoutError) as caught:
         await client.get()
-    assert caught.value.stderr == "waiting"
+    assert caught.value.stderr == ""
     with pytest.raises(HelperTimeoutError):
         async with client.stream():
             pass
+
+
+async def test_timeout_retains_received_stderr(helpers, monkeypatch):
+    make, _ = helpers
+    original = Process.read_all
+
+    async def expire_after_diagnostic(self):
+        # Start the short deadline after output arrives, not during interpreter startup.
+        while self.stderr != "waiting":
+            await asyncio.sleep(0.01)
+        async with asyncio.timeout(0.02):
+            return await original(self)
+
+    monkeypatch.setattr(Process, "read_all", expire_after_diagnostic)
+    client = make('os.write(2, b"waiting"); time.sleep(30)\n')
+    with pytest.raises(HelperTimeoutError) as caught:
+        await client.get()
+    assert caught.value.stderr == "waiting"
 
 
 async def test_cancellation_during_get(helpers):
@@ -260,6 +278,6 @@ async def test_malformed_event_after_initial_snapshot(helpers):
 
 async def test_initialization_timeout_does_not_cover_consumer(helpers):
     make, _ = helpers
-    async with make(EMIT + "time.sleep(30)\n", initialization_timeout=0.2).stream() as stream:
-        await asyncio.sleep(0.3)
+    async with make(EMIT + "time.sleep(30)\n", initialization_timeout=2.0).stream() as stream:
+        await asyncio.sleep(2.2)
         assert (await anext(stream)).title == "音乐🎵"

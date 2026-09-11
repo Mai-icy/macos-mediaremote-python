@@ -230,9 +230,10 @@ only happen at build time.
 - The native deployment target is macOS 11.0. This is a binary build target,
   not a runtime guarantee for every macOS 11+ release. Python's own deployment
   requirements also apply.
-- Only the read-only paths on the development Mac, running macOS 26.5.1 on Apple
-  Silicon, have been verified. Building and checking an Intel slice does not
-  substitute for testing on an Intel Mac.
+- Live media metadata and streaming have been verified on the development Mac,
+  running macOS 26.5.1 on Apple Silicon. Hosted CI separately checks installation
+  and read-only helper execution on Intel and Apple Silicon; it does not exercise
+  real desktop players.
 - This package depends on private MediaRemote APIs and the system Perl access
   mechanism. Future macOS updates may break it. It does not require disabling SIP,
   modifying system files, or obtaining Spotify OAuth or automation permissions.
@@ -250,7 +251,7 @@ only happen at build time.
 
 Validated on 2026-09-11 with macOS 26.5.1, Apple Silicon, and Python 3.14.5:
 
-- 87 automated tests passed, covering protocol parsing, time units, control
+- 88 automated tests passed, covering protocol parsing, time units, control
   arguments, timeouts, cancellation, stderr, backpressure, and process cleanup.
   Playback controls were tested using simulated helpers.
 - A universal2 wheel was built from the sdist and installed offline in a new
@@ -262,8 +263,9 @@ Validated on 2026-09-11 with macOS 26.5.1, Apple Silicon, and Python 3.14.5:
 - Live reads returned a nonempty Now Playing snapshot, the stream received
   updates, and cancellation reaped the helper. No real playback controls or
   upstream `test` command were executed.
-- Intel hardware, other macOS/Python versions, a player compatibility matrix,
-  Developer ID signing, and notarized distribution remain unverified.
+- Interactive Intel desktops, real playback controls, a player compatibility
+  matrix, Developer ID signing, and notarized distribution remain unverified.
+  See the CI workflow below for automated Python and hosted macOS coverage.
 
 `examples/verify_installed.py` performs the installed-wheel read-only audit. It
 does not send playback controls or print actual track metadata values.
