@@ -1,0 +1,11 @@
+{
+  "package_version": "0.1.0a1",
+  "repository": "https://github.com/ungive/mediaremote-adapter",
+  "release": "v0.7.7",
+  "commit": "e3ff5021eb0875858bd05f48d2e9ba2e962d1cf6",
+  "archive_url": "https://codeload.github.com/ungive/mediaremote-adapter/tar.gz/e3ff5021eb0875858bd05f48d2e9ba2e962d1cf6",
+  "archive_sha256": "adf2564265cbfbed6ee967cd44f70f774a78f681aaa41145c67730cad66f9277",
+  "deployment_target": "11.0",
+  "architectures": ["arm64", "x86_64"],
+  "native_source_patches": []
+}

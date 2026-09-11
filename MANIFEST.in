@@ -1,0 +1,8 @@
+include native_build.py upstream.lock.json
+recursive-include licenses *
+recursive-include examples *.py
+recursive-include tests *.py
+global-exclude *.md
+include README.md
+prune .build
+prune .venv

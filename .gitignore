@@ -1,0 +1,13 @@
+.venv/
+.build/
+build/
+dist/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+*.pyc
+.DS_Store
+
+# Keep session notes and local reports private; publish only the root README.
+*.[mM][dD]
+!/README.md
