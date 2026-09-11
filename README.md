@@ -4,9 +4,9 @@ An **unofficial**, lightweight asyncio wrapper for
 [ungive/mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), targeting
 macOS's current Now Playing application.
 
-Import it as `macos_mediaremote`. The provisional distribution name is
-`macos-mediaremote-python`, and the current version is `0.1.0a1`. PyPI name
-availability has not been checked, and no PyPI package has been published.
+Import it as `macos_mediaremote`. The distribution name is
+`macos-mediaremote-python`, and the current version is `0.1.0a1`. No PyPI package
+has been published yet.
 The API follows the upstream protocol and has no Spotify, Qt, or third-party
 Python runtime dependencies.
 
@@ -181,7 +181,7 @@ Invalid API arguments raise `ValueError`.
 Package version `0.1.0a1` pins upstream
 [v0.7.7](https://github.com/ungive/mediaremote-adapter/releases/tag/v0.7.7), commit
 [`e3ff5021eb0875858bd05f48d2e9ba2e962d1cf6`](https://github.com/ungive/mediaremote-adapter/tree/e3ff5021eb0875858bd05f48d2e9ba2e962d1cf6).
-[upstream.lock.json](upstream.lock.json) records the archive SHA-256, deployment
+[upstream.lock.json](https://github.com/Mai-icy/macos-mediaremote-python/blob/main/upstream.lock.json) records the archive SHA-256, deployment
 target, and package-to-upstream version mapping. Each build extracts verified
 archive bytes into a fresh directory. It does not build from an edited checkout
 or fetch a moving `latest` version at runtime.
@@ -250,7 +250,7 @@ only happen at build time.
 
 Validated on 2026-09-11 with macOS 26.5.1, Apple Silicon, and Python 3.14.5:
 
-- 72 automated tests passed, covering protocol parsing, time units, control
+- 87 automated tests passed, covering protocol parsing, time units, control
   arguments, timeouts, cancellation, stderr, backpressure, and process cleanup.
   Playback controls were tested using simulated helpers.
 - A universal2 wheel was built from the sdist and installed offline in a new
@@ -270,10 +270,10 @@ does not send playback controls or print actual track metadata values.
 
 ## License and release status
 
-The wrapper currently uses BSD-3-Clause; see [LICENSE](LICENSE). The license
+The wrapper currently uses BSD-3-Clause; see [LICENSE](https://github.com/Mai-icy/macos-mediaremote-python/blob/main/LICENSE). The license
 choice will be confirmed by the project owner before a package release.
 Upstream copyright belongs to Jonas van den Berg and contributors. Its original
-license is preserved in [licenses/mediaremote-adapter.txt](licenses/mediaremote-adapter.txt)
+license is preserved in [licenses/mediaremote-adapter.txt](https://github.com/Mai-icy/macos-mediaremote-python/blob/main/licenses/mediaremote-adapter.txt)
 and bundled with the wheel. The wrapper is independently implemented against the
 public CLI/JSON protocol.
 
@@ -281,6 +281,45 @@ Framework layout changes, install-name changes, and re-signing are packaging
 steps performed by this project, not official upstream artifacts.
 
 Source code and local build instructions are available. Nothing has been
-published to PyPI/TestPyPI, and automatic publishing is not configured. The final
-PyPI name, license confirmation, supported platform range, and signing strategy
+published to PyPI/TestPyPI. The distribution name is `macos-mediaremote-python`;
+license confirmation, the supported platform range, and the signing strategy
 will be settled before a package release.
+
+## CI and release workflow
+
+`.github/workflows/release.yml` runs on pushes to `main`, pull requests, and
+manual dispatch. Ordinary pushes and pull requests never upload to PyPI.
+
+The workflow tests Python 3.11 through 3.14, builds a universal2 wheel from the
+sdist, runs `twine check --strict`, and installs that same wheel in fresh
+Apple Silicon and Intel macOS 15 environments on Python 3.11 and 3.14. Runtime
+tests run outside the source checkout. The installed-wheel audit verifies
+resources, signatures, deployment targets, library dependencies, and a read-only
+`get()` call. A successful empty read on a hosted runner is not evidence of live
+player compatibility; desktop playback and streaming still need separate tests.
+
+`release_checks.py` rejects inconsistent package versions, upstream pins, and
+architecture settings. The wheel tag is derived from the locked deployment
+target. You can run the metadata checks locally without invoking the helper:
+
+```sh
+python release_checks.py
+```
+
+Publishing uses PyPI Trusted Publishing with these identifiers:
+
+| Setting | Value |
+| --- | --- |
+| Project | `macos-mediaremote-python` |
+| GitHub owner | `Mai-icy` |
+| Repository | `macos-mediaremote-python` |
+| Workflow filename | `release.yml` |
+| GitHub environment | `pypi` |
+
+For an authorized release, create a `vVERSION` tag matching the package version,
+then manually dispatch this workflow at that tag with `publish=true`. The input
+defaults to false. Publishing requires all checks to pass and approval in the
+`pypi` environment. Only the publishing job receives OIDC permissions; it uploads
+the already-tested artifacts without rebuilding. No persistent PyPI token or
+TestPyPI workflow is used. Creating or pushing a tag alone does not upload a
+release.

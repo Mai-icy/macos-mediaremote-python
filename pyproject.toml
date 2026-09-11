@@ -16,6 +16,12 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
 ]
 
+[project.urls]
+Homepage = "https://github.com/Mai-icy/macos-mediaremote-python"
+Repository = "https://github.com/Mai-icy/macos-mediaremote-python"
+Issues = "https://github.com/Mai-icy/macos-mediaremote-python/issues"
+Documentation = "https://github.com/Mai-icy/macos-mediaremote-python#readme"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
