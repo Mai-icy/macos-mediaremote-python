@@ -28,6 +28,27 @@ At runtime, the wrapper invokes macOS's `/usr/bin/perl`, preserving the upstream
 `DynaLoader` mechanism for loading the framework. Python does not load the private
 framework directly.
 
+## Try the PyCharm demo
+
+Open the repository's `demo` directory as a project in PyCharm. It contains a
+standalone console example using the published package. Create its environment
+from that directory:
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+```
+
+Select `demo/.venv/bin/python` as the project's Python interpreter, then open
+`main.py` and run it. Start playback in a media app to see the title, artist,
+album, player, playback state, and snapshot position in the Run console.
+
+The demo reads the current state and listens for updates for 60 seconds, then
+closes the subscription automatically. Change `WATCH_SECONDS` in `main.py` to
+adjust the duration, or run `python main.py --seconds 120` from a terminal.
+Ctrl+C also stops it. The demo only reads metadata; it does not send playback
+commands. An initial empty stream snapshot can be followed by player metadata.
+
 ## Read the current state
 
 ```python

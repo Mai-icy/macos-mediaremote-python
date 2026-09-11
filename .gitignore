@@ -7,6 +7,7 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .DS_Store
+.idea/
 
 # Keep session notes and local reports private; publish only the root README.
 *.[mM][dD]
